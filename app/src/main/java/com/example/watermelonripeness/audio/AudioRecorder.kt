@@ -9,10 +9,24 @@ import kotlin.math.min
 data class Recording(val samples: ShortArray, val sampleRate: Int)
 
 class AudioRecorder(private val sampleRate: Int = 16_000) {
+    fun record(durationMs: Int): Recording = record(durationMs, durationMs) { _, _ -> }
+
+    /**
+     * 连续录音并按固定周期把最新 PCM 帧回调给分析层。
+     * 音频始终只存在内存中，不生成 WAV，也不写入手机存储。
+     */
     @SuppressLint("MissingPermission")
-    fun record(durationMs: Int): Recording {
+    fun record(
+        durationMs: Int,
+        updateIntervalMs: Int,
+        onFrame: (ShortArray, Int) -> Unit
+    ): Recording {
+        require(durationMs > 0) { "录音时长必须大于 0" }
+        require(updateIntervalMs > 0) { "刷新周期必须大于 0" }
+
         val channel = AudioFormat.CHANNEL_IN_MONO
         val encoding = AudioFormat.ENCODING_PCM_16BIT
+        val frameSamples = (sampleRate * updateIntervalMs / 1000).coerceAtLeast(1)
         val minimum = AudioRecord.getMinBufferSize(sampleRate, channel, encoding)
         require(minimum > 0) { "设备不支持当前录音参数" }
         val recorder = AudioRecord(
@@ -20,25 +34,37 @@ class AudioRecorder(private val sampleRate: Int = 16_000) {
             sampleRate,
             channel,
             encoding,
-            maxOf(minimum, 2048)
+            maxOf(minimum, frameSamples * 2)
         )
         check(recorder.state == AudioRecord.STATE_INITIALIZED) { "麦克风初始化失败" }
 
         val wanted = sampleRate * durationMs / 1000
         val samples = ShortArray(wanted)
         var offset = 0
+
         try {
             recorder.startRecording()
             while (offset < wanted) {
-                val count = recorder.read(samples, offset, min(2048, wanted - offset))
-                if (count < 0) error("录音读取失败：$count")
-                if (count == 0) continue
-                offset += count
+                val currentFrameSize = min(frameSamples, wanted - offset)
+                val frame = ShortArray(currentFrameSize)
+                var frameOffset = 0
+
+                while (frameOffset < currentFrameSize) {
+                    val count = recorder.read(frame, frameOffset, currentFrameSize - frameOffset)
+                    if (count < 0) error("录音读取失败：$count")
+                    if (count == 0) continue
+                    frameOffset += count
+                }
+
+                frame.copyInto(samples, destinationOffset = offset)
+                offset += currentFrameSize
+                onFrame(frame, sampleRate)
             }
         } finally {
             if (recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) recorder.stop()
             recorder.release()
         }
+
         return Recording(samples, sampleRate)
     }
 }

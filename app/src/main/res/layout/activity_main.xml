@@ -55,6 +55,18 @@
             android:visibility="invisible" />
 
         <TextView
+            android:id="@+id/liveFrequencyText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:text="当前主频：-- Hz"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#385744"
+            android:visibility="invisible" />
+
+        <TextView
             android:id="@+id/resultText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
