@@ -43,7 +43,7 @@ object FeatureExtractor {
         }
         val centroid = if (total > 0) weighted / total else 0.0
 
-        val chunk = (sampleRate * 0.12).coerceAtMost(normalized.size / 2).coerceAtLeast(1)
+        val chunk = (sampleRate * 0.12).toInt().coerceAtMost(normalized.size / 2).coerceAtLeast(1)
         fun chunkRms(start: Int) = sqrt((start until start + chunk).sumOf { normalized[it] * normalized[it] } / chunk)
         val earlyStart = bestStart.coerceAtMost(normalized.size - chunk)
         val lateStart = (earlyStart + sampleRate / 2).coerceAtMost(normalized.size - chunk)
