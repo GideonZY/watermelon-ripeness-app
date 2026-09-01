@@ -20,6 +20,20 @@ class AudioRecorder(private val sampleRate: Int = 16_000) {
         durationMs: Int,
         updateIntervalMs: Int,
         onFrame: (ShortArray, Int) -> Unit
+    ): Recording = recordUntil(durationMs, updateIntervalMs) { frame, rate, _ ->
+        onFrame(frame, rate)
+        false
+    }
+
+    /**
+     * 与 [record] 相同，但回调可返回 true 提前结束录音。
+     * frameStartSample 是当前帧在整段 PCM 中的起始采样点。
+     */
+    @SuppressLint("MissingPermission")
+    fun recordUntil(
+        durationMs: Int,
+        updateIntervalMs: Int,
+        onFrame: (ShortArray, Int, Int) -> Boolean
     ): Recording {
         require(durationMs > 0) { "录音时长必须大于 0" }
         require(updateIntervalMs > 0) { "刷新周期必须大于 0" }
@@ -56,15 +70,16 @@ class AudioRecorder(private val sampleRate: Int = 16_000) {
                     frameOffset += count
                 }
 
+                val frameStartSample = offset
                 frame.copyInto(samples, destinationOffset = offset)
                 offset += currentFrameSize
-                onFrame(frame, sampleRate)
+                if (onFrame(frame, sampleRate, frameStartSample)) break
             }
         } finally {
             if (recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) recorder.stop()
             recorder.release()
         }
 
-        return Recording(samples, sampleRate)
+        return Recording(samples.copyOf(offset), sampleRate)
     }
 }

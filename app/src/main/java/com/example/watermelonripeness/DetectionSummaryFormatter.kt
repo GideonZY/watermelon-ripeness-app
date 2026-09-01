@@ -1,16 +1,24 @@
 package com.example.watermelonripeness
 
-import com.example.watermelonripeness.analysis.AudioFeatures
-import com.example.watermelonripeness.classifier.Classification
+import com.example.watermelonripeness.classifier.SessionClassification
+
+data class DetectionSummaryUiModel(
+    val headline: String,
+    val ripenessLabel: String,
+    val stabilityLabel: String,
+    val explanation: String,
+    val referenceText: String
+)
 
 object DetectionSummaryFormatter {
-    fun format(result: Classification, features: AudioFeatures): String = buildString {
-        append("检测结果：${result.ripeness.displayName}")
-        append('\n')
-        append("敲击声频率：%.0f Hz".format(features.dominantFrequencyHz))
-        append('\n')
-        append(result.explanation)
-        append('\n')
-        append("温馨提示：结果仅供参考，建议结合手感、瓜纹和瓜脐综合判断。")
+    fun format(result: SessionClassification): DetectionSummaryUiModel {
+        val reference = result.referenceFrequencyHz?.let { "声音参考值：%.0f Hz".format(it) }.orEmpty()
+        return DetectionSummaryUiModel(
+            headline = result.purchaseDecision.displayName,
+            ripenessLabel = result.ripeness?.displayName.orEmpty(),
+            stabilityLabel = result.stability.displayName,
+            explanation = result.explanation,
+            referenceText = reference
+        )
     }
 }
