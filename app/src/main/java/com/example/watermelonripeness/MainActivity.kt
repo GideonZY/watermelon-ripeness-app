@@ -12,7 +12,6 @@ import com.example.watermelonripeness.analysis.FeatureExtractor
 import com.example.watermelonripeness.analysis.LiveFrequencyTracker
 import com.example.watermelonripeness.audio.AudioRecorder
 import com.example.watermelonripeness.classifier.RipenessClassifier
-import com.example.watermelonripeness.classifier.RipenessScale
 import com.example.watermelonripeness.classifier.RuleBasedClassifier
 import com.example.watermelonripeness.ui.RipenessGaugeView
 import com.google.android.material.button.MaterialButton
@@ -24,13 +23,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resultText: TextView
     private lateinit var liveFrequencyText: TextView
     private lateinit var gaugeView: RipenessGaugeView
+    private lateinit var liveDetectionCard: View
+    private lateinit var resultCard: View
     private val executor = Executors.newSingleThreadExecutor()
     private val recorder = AudioRecorder()
     private val liveFrequencyTracker = LiveFrequencyTracker()
     private val classifier: RipenessClassifier = RuleBasedClassifier()
 
     private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) startRecording() else statusText.text = "需要麦克风权限才能开始检测"
+        if (granted) {
+            startRecording()
+        } else {
+            resultText.text = "检测结果：需要麦克风权限才能开始检测"
+            applyUiPhase(DetectionPhase.COMPLETE)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,10 +47,16 @@ class MainActivity : AppCompatActivity() {
         resultText = findViewById(R.id.resultText)
         liveFrequencyText = findViewById(R.id.liveFrequencyText)
         gaugeView = findViewById(R.id.ripenessGauge)
+        liveDetectionCard = findViewById(R.id.liveDetectionCard)
+        resultCard = findViewById(R.id.resultCard)
+        applyUiPhase(DetectionPhase.IDLE)
+
         recordButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                 startRecording()
-            } else permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            } else {
+                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
         }
     }
 
@@ -52,12 +64,10 @@ class MainActivity : AppCompatActivity() {
         recordButton.isEnabled = false
         recordButton.text = "检测中…"
         statusText.text = "实时检测中，请连续拍击西瓜 2～3 次"
-        resultText.text = "检测结果：等待本次检测完成"
         liveFrequencyText.text = "当前频率：等待有效拍击…"
         liveFrequencyTracker.reset()
         gaugeView.setGaugeValue(0f)
-        gaugeView.visibility = View.VISIBLE
-        liveFrequencyText.visibility = View.VISIBLE
+        applyUiPhase(DetectionPhase.DETECTING)
 
         executor.execute {
             try {
@@ -76,27 +86,22 @@ class MainActivity : AppCompatActivity() {
 
                 if (liveFrequencyTracker.validReadingCount == 0) {
                     runOnUiThread {
-                        statusText.text = "没有听到清晰拍击声，请重试"
-                        liveFrequencyText.text = "当前频率：-- Hz"
-                        resultText.text = "检测结果：未能识别，请换个安静环境再试一次"
+                        resultText.text = "检测结果：没有听到清晰拍击声，请换个安静环境再试一次"
+                        applyUiPhase(DetectionPhase.COMPLETE)
                     }
                     return@execute
                 }
 
                 val features = FeatureExtractor.extract(recording.samples, recording.sampleRate)
                 val result = classifier.classify(features, recording.samples, recording.sampleRate)
-                val finalGaugeValue = RipenessScale.gaugeValue(features.dominantFrequencyHz)
                 runOnUiThread {
-                    statusText.text = "检测完成"
-                    gaugeView.setGaugeValue(finalGaugeValue)
-                    liveFrequencyText.text = "敲击声频率：%.0f Hz".format(features.dominantFrequencyHz)
                     resultText.text = DetectionSummaryFormatter.format(result, features)
+                    applyUiPhase(DetectionPhase.COMPLETE)
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    statusText.text = "检测失败：${e.message}"
-                    liveFrequencyText.text = "当前频率：-- Hz"
-                    resultText.text = "检测结果：本次未完成，请稍后重试"
+                    resultText.text = "检测结果：本次检测失败，请稍后重试"
+                    applyUiPhase(DetectionPhase.COMPLETE)
                 }
             } finally {
                 runOnUiThread {
@@ -105,6 +110,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun applyUiPhase(phase: DetectionPhase) {
+        val visibility = DetectionUiState.forPhase(phase)
+        liveDetectionCard.visibility = if (visibility.showLiveDetection) View.VISIBLE else View.GONE
+        resultCard.visibility = if (visibility.showResult) View.VISIBLE else View.GONE
+        statusText.visibility = if (visibility.showStatus) View.VISIBLE else View.GONE
     }
 
     override fun onDestroy() {

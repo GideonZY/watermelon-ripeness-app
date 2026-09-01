@@ -100,15 +100,18 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="准备就绪，开始前请保持周围尽量安静"
+            android:text="实时检测中，请连续拍击西瓜 2～3 次"
             android:textColor="#587262"
+            android:visibility="gone"
             android:textSize="14sp" />
 
         <LinearLayout
+            android:id="@+id/liveDetectionCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_card_surface"
+            android:visibility="gone"
             android:elevation="1dp"
             android:orientation="vertical"
             android:padding="18dp">
@@ -148,9 +151,10 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/resultCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_card_result"
             android:elevation="1dp"
             android:orientation="vertical"
@@ -170,7 +174,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:lineSpacingExtra="5dp"
-                android:text="检测结果：等待本次检测完成"
+                android:text="检测结果：点击开始检测，完成后结果会显示在这里"
                 android:textColor="#244A39"
                 android:textSize="16sp" />
         </LinearLayout>
