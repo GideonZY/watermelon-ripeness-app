@@ -1,67 +1,178 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F7FFF7">
+    android:background="@drawable/bg_app_gradient">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="28dp">
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="28dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🍉 西瓜听诊器"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="#184D2B" />
-
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:gravity="center"
-            android:text="把手机麦克风靠近西瓜约 10 厘米，点击按钮后拍击 2～3 次。"
-            android:textSize="17sp"
-            android:textColor="#385744" />
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_card_header"
+            android:elevation="2dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="20dp">
 
-        <Button
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="西瓜图标"
+                android:src="@drawable/ic_watermelon_badge" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="西瓜听诊器"
+                    android:textColor="#173B2A"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="拍一拍，看看更接近偏生、适熟还是偏熟"
+                    android:textColor="#4F6B5A"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_card_surface"
+            android:elevation="1dp"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="使用小贴士"
+                android:textColor="#173B2A"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:lineSpacingExtra="4dp"
+                android:text="1. 把手机麦克风靠近西瓜约 10 厘米。&#10;2. 点击开始检测后，连续拍击 2～3 次。&#10;3. 检测结果仅供参考，建议结合手感和外观一起判断。"
+                android:textColor="#4F6B5A"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/recordButton"
+            style="@style/Widget.Watermelon.PrimaryButton"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginTop="32dp"
+            android:layout_height="58dp"
             android:text="开始检测"
-            android:textSize="20sp" />
+            android:textSize="18sp"
+            app:cornerRadius="18dp"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp" />
 
         <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="等待检测"
-            android:textSize="14sp"
-            android:textColor="#607366" />
+            android:text="准备就绪，开始前请保持周围尽量安静"
+            android:textColor="#587262"
+            android:textSize="14sp" />
 
-        <com.example.watermelonripeness.ui.RipenessGaugeView
-            android:id="@+id/ripenessGauge"
-            android:layout_width="match_parent"
-            android:layout_height="210dp"
-            android:layout_marginTop="10dp"
-            android:visibility="invisible" />
-
-        <TextView
-            android:id="@+id/resultText"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#B3261E" />
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_surface"
+            android:elevation="1dp"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="实时检测"
+                android:textColor="#173B2A"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <com.example.watermelonripeness.ui.RipenessGaugeView
+                android:id="@+id/ripenessGauge"
+                android:layout_width="match_parent"
+                android:layout_height="210dp"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/liveFrequencyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="当前频率：-- Hz"
+                android:textColor="#244A39"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="左侧偏生 · 中间适熟 · 右侧偏熟"
+                android:textColor="#6A8374"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_result"
+            android:elevation="1dp"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="检测结果"
+                android:textColor="#173B2A"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/resultText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:lineSpacingExtra="5dp"
+                android:text="检测结果：等待本次检测完成"
+                android:textColor="#244A39"
+                android:textSize="16sp" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>
