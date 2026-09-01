@@ -1,0 +1,2 @@
+sample_id,wav_file,recorded_at,phone_model,distance_cm,tap_count,location_noise,watermelon_variety,weight_kg,ground_truth_label,label_method,days_after_recording,dominant_frequency_hz,spectral_centroid_hz,rms,decay_db,notes
+WM0001,WM0001.wav,2026-09-01T10:00:00+08:00,Example Phone,10,3,quiet,unknown,5.2,ripe,taste_and_brix,0,,,,,甜度12.1 Brix
