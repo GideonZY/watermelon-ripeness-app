@@ -20,37 +20,44 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Find Android project
-        id: android_project
+      - name: Read Gradle version
+        id: gradle_version
         shell: bash
         run: |
-          GRADLEW=$(find . -name gradlew -type f | head -n 1)
+          GRADLE_VERSION=$(grep "distributionUrl" gradle/wrapper/gradle-wrapper.properties \
+            | sed -E 's#.*gradle-([0-9.]+)-(bin|all)\.zip#\1#')
 
-          if [ -z "$GRADLEW" ]; then
-            echo "ERROR: 没有找到 gradlew"
-            echo "仓库当前文件结构如下："
-            find . -maxdepth 4 -type f | sort
+          echo "Gradle version: $GRADLE_VERSION"
+
+          if [ -z "$GRADLE_VERSION" ]; then
+            echo "ERROR: 无法从 gradle-wrapper.properties 获取 Gradle 版本"
+            cat gradle/wrapper/gradle-wrapper.properties
             exit 1
           fi
 
-          PROJECT_DIR=$(dirname "$GRADLEW")
+          echo "version=$GRADLE_VERSION" >> "$GITHUB_OUTPUT"
 
-          echo "Found gradlew: $GRADLEW"
-          echo "Project directory: $PROJECT_DIR"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ steps.gradle_version.outputs.version }}
 
-          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
-
-      - name: Make Gradle executable
-        working-directory: ${{ steps.android_project.outputs.project_dir }}
-        run: chmod +x gradlew
+      - name: Show Gradle version
+        run: gradle --version
 
       - name: Build Debug APK
-        working-directory: ${{ steps.android_project.outputs.project_dir }}
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
+
+      - name: Find APK
+        shell: bash
+        run: |
+          echo "生成的 APK："
+          find . -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: watermelon-ripeness-app
+          name: watermelon-ripeness-app-debug
           path: |
             **/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
